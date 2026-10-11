@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AdBridge — биржа рекламы для креаторов</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#eef1f6;--card:#fff;--tx:#14213d;--mu:#5d6882;--ln:#d9dfeb;--ac:#2f5bff;--acx:#fff;--ok:#12805c;--wa:#b45309;--er:#c62828;--okb:#dff5ec;--wab:#fdecd0;--erb:#fde2e2}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1424;--card:#171f35;--tx:#eaf0ff;--mu:#97a3c0;--ln:#2a3556;--ac:#7c9bff;--acx:#0e1424;--ok:#4ade9f;--wa:#fbbf50;--er:#ff8a8a;--okb:#12382b;--wab:#43330f;--erb:#472020}}
+:root[data-theme="dark"]{--bg:#0e1424;--card:#171f35;--tx:#eaf0ff;--mu:#97a3c0;--ln:#2a3556;--ac:#7c9bff;--acx:#0e1424;--ok:#4ade9f;--wa:#fbbf50;--er:#ff8a8a;--okb:#12382b;--wab:#43330f;--erb:#472020}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);border-bottom:1px solid var(--ln);z-index:5;padding:10px 16px 0}
+.in{max-width:680px;margin:0 auto}
+.logo{font-weight:800;font-size:20px;letter-spacing:-.02em}
+.logo span{color:var(--ac)}
+nav{display:flex;gap:4px;margin-top:8px}
+nav button{flex:1;background:none;border:0;border-bottom:3px solid transparent;padding:10px 4px;font:600 15px inherit;color:var(--mu);cursor:pointer}
+nav button.on{color:var(--tx);border-color:var(--ac)}
+main{padding:16px}
+h2{font-size:18px;margin:22px 0 10px}
+h3{font-size:17px;margin:0 0 6px}
+p{margin:6px 0}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:14px;margin-bottom:12px}
+.card.warn{border-color:var(--er);background:var(--erb)}
+.mu{color:var(--mu)}.sm{font-size:14px}.ok{color:var(--ok);font-weight:600}.wa{color:var(--wa);font-weight:600}.er{color:var(--er);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.tag{background:var(--bg);border:1px solid var(--ln);border-radius:999px;padding:2px 10px;font-size:13px}
+.chip{background:var(--card);border:1px solid var(--ln);border-radius:999px;padding:6px 14px;font:inherit;font-size:14px;color:var(--tx);cursor:pointer}
+.chip.on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+button{font:600 15px inherit;border-radius:10px;border:1px solid var(--ln);background:var(--card);color:var(--tx);padding:10px 14px;cursor:pointer;min-height:44px}
+button.pri{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);margin:4px 0 8px}
+textarea{min-height:70px;resize:vertical}
+label{font-size:14px;font-weight:600}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.bid{border-top:1px solid var(--ln);padding-top:10px;margin-top:10px}
+.b{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700}
+.b.low{background:var(--okb);color:var(--ok)}.b.mid{background:var(--wab);color:var(--wa)}.b.high{background:var(--erb);color:var(--er)}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+#modal:empty{display:none}
+.sheet{background:var(--card);width:100%;max-width:680px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.foot{text-align:center;margin:20px 0}
+</style></head>
+<body>
+<header><div class="in"><div class="logo">Ad<span>Bridge</span></div>
+<nav id="nav"></nav></div></header>
+<main><div class="in" id="app"></div></main>
+<div id="modal"></div>
+<script>
+const C={
+anna:{n:'@anna.vibes',p:'TikTok',f:48000,v:21000,l:2100,c:140,g:1.2,b:4,cv:.55},
+kate:{n:'@kate_travel',p:'YouTube',f:15000,v:4000,l:300,c:40,g:7,b:18,cv:.12},
+max:{n:'@max_fit',p:'Instagram',f:120000,v:30000,l:9000,c:20,g:12,b:38,cv:.08}};
+function risk(c){let s=0;const r=[];
+ if(c.g>10){s+=30;r.push('Скачок подписчиков: +'+c.g+'% за день')}else if(c.g>5){s+=15;r.push('Быстрый рост: +'+c.g+'% за день')}
+ const lv=c.l/c.v;if(lv>.25||lv<.01){s+=20;r.push('Аномальное отношение лайков к просмотрам: '+(lv*100).toFixed(1)+'%')}
+ if(c.c/c.l<.01){s+=20;r.push('Много лайков, почти нет комментариев')}
+ if(c.b>30){s+=25;r.push('Боты в комментариях: '+c.b+'%')}else if(c.b>15){s+=10;r.push('Подозрительных комментариев: '+c.b+'%')}
+ if(c.cv<.15){s+=15;r.push('Слишком ровные просмотры')}
+ return{s:Math.min(100,s),r}}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rub=n=>Number(n).toLocaleString('ru-RU')+' ₽';
+const k=n=>n>=1000?(n/1000).toFixed(n>=10000?0:1).replace('.0','')+'K':n;
+const er=c=>((c.l+c.c)/c.v*100).toFixed(1)+'%';
+const badge=s=>{const l=s>=70?['high','высокий']:s>=30?['mid','средний']:['low','низкий'];return `<span class="b ${l[0]}">Риск ${s}, ${l[1]}</span>`};
+const seed=()=>({me:'anna',n:10,chk:{},blocked:{},
+ ads:[{id:1,mine:1,st:'Открыта',t:'Обзор мобильного приложения',d:'Видео 30–60 секунд: покажите приложение в деле и расскажите, чем оно полезно.',p:'TikTok',fm:'Видео',mf:20000,mv:10000,bud:15000},
+ {id:2,mine:0,st:'Открыта',t:'Сторис для кофейни',d:'3 сторис с дегустацией новых напитков, отметка аккаунта кофейни.',p:'Instagram',fm:'Сторис',mf:10000,mv:3000,bud:5000},
+ {id:3,mine:0,st:'Открыта',t:'Распаковка наушников',d:'Честный обзор в формате распаковки, до 5 минут, ссылка в описании.',p:'YouTube',fm:'Видео',mf:10000,mv:3000,bud:20000}],
+ bids:[{id:5,ad:1,cr:'anna',price:12000,cm:'Сделаю в своём стиле, 2 дня на съёмку.',st:'new'},{id:6,ad:1,cr:'kate',price:9000,cm:'',st:'new'}]});
+let S,tab='feed',filt='Все',modal=null;
+try{S=JSON.parse(localStorage.getItem('adb1'))}catch(e){}if(!S)S=seed();
+const save=()=>{try{localStorage.setItem('adb1',JSON.stringify(S))}catch(e){}};
+function check(id){if(S.chk[id])return;S.chk[id]=1;const r=risk(C[id]);if(r.s>=70)S.blocked[id]={r:r.r,ap:false}}
+function vFeed(){const me=C[S.me],bl=S.blocked[S.me];
+ let h=`<div class="card"><label for="me">Вы вошли как креатор (демо)</label><select id="me">${Object.entries(C).map(([i,c])=>`<option value="${i}" ${i==S.me?'selected':''}>${c.n}, ${c.p}, ${k(c.f)}</option>`).join('')}</select><p class="mu sm">После входа через соцсеть платформа получает ваши данные: ${k(me.f)} подписчиков, охват ${k(me.v)}, вовлечённость ${er(me)}.</p></div>`;
+ if(bl)h+=`<div class="card warn"><h3>Аккаунт заблокирован</h3><p class="sm">${bl.r.map(esc).join('<br>')}</p>${bl.ap?'<p class="mu sm">Апелляция отправлена, её рассмотрит админ.</p>':'<button data-a="appeal">Подать апелляцию</button>'}</div>`;
+ h+=`<div class="chips">${['Все','TikTok','Instagram','YouTube'].map(p=>`<button class="chip ${p==filt?'on':''}" data-a="f|${p}">${p}</button>`).join('')}</div>`;
+ S.ads.filter(a=>filt=='Все'||a.p==filt).forEach(a=>{const bid=S.bids.find(b=>b.ad==a.id&&b.cr==S.me),ok=me.f>=a.mf&&me.v>=a.mv;
+ h+=`<div class="card"><h3>${esc(a.t)}</h3><p>${esc(a.d)}</p><div class="chips"><span class="tag">${a.p}</span><span class="tag">${esc(a.fm)}</span><span class="tag">от ${k(a.mf)} подписчиков</span><span class="tag">от ${k(a.mv)} охвата</span><span class="tag">бюджет ${rub(a.bud)}</span></div>`+
+ (bid?`<p class="ok">Отклик отправлен: ${rub(bid.price)}</p>`:bl?'':ok?`<button class="pri" data-a="open|${a.id}">Предложить цену</button>`:'<p class="mu sm">Не подходит по требованиям афиши</p>')+'</div>'});
+ return h}
+let draft={},busy=false,gmsg='';
+const sel=(o,v)=>o.map(x=>`<option ${x==v?'selected':''}>${x}</option>`).join('');
+function vAdv(){const d=draft;let h=`<div class="card"><h3>✨ Афиша с помощью Claude</h3><p class="mu sm">Опишите идею в паре фраз, Claude заполнит афишу ниже.</p><textarea id="idea" placeholder="Например: кофейне нужны 3 сторис с дегустацией новых напитков, бюджет 5000 ₽">${esc(d.idea||'')}</textarea><button class="pri" data-a="gen" ${busy?'disabled':''}>${busy?'Claude думает...':'Сгенерировать афишу'}</button>${gmsg?`<p class="er sm">${esc(gmsg)}</p>`:''}</div><div class="card"><h3>Новая афиша</h3><input id="t" placeholder="Название" value="${esc(d.t||'')}"><textarea id="d" placeholder="Что нужно сделать и на каких условиях">${esc(d.d||'')}</textarea><div class="row"><select id="p">${sel(['TikTok','Instagram','YouTube'],d.p)}</select><select id="fm">${sel(['Видео','Сторис','Пост'],d.fm)}</select></div><div class="row"><input id="mf" type="number" placeholder="Мин. подписчиков" value="${d.mf||''}"><input id="mv" type="number" placeholder="Мин. охват" value="${d.mv||''}"></div><input id="bud" type="number" placeholder="Бюджет, ₽" value="${d.bud||''}"><button class="pri" data-a="newad">Опубликовать афишу</button></div><h2>Мои афиши</h2>`;
+ S.ads.filter(a=>a.mine).forEach(a=>{const bs=S.bids.filter(b=>b.ad==a.id);
+ h+=`<div class="card"><h3>${esc(a.t)}</h3><p class="mu sm">${a.p}, ${esc(a.fm)}, бюджет ${rub(a.bud)}. Статус: ${a.st}</p>`+(bs.length?'':'<p class="mu">Откликов пока нет</p>')+
+ bs.map(b=>{const c=C[b.cr],r=risk(c);return `<div class="bid"><div class="top"><b>${c.n}</b><b>${rub(b.price)}</b></div><p class="mu sm">${c.p}, ${k(c.f)} подписчиков, охват ${k(c.v)}, вовлечённость ${er(c)}</p>${badge(r.s)}${r.r.length?`<p class="mu sm">${r.r.map(esc).join('; ')}</p>`:''}${b.cm?`<p class="sm">«${esc(b.cm)}»</p>`:''}`+
+ (b.st=='new'?`<div class="row"><button class="pri" data-a="acc|${b.id}">Принять</button><button data-a="rej|${b.id}">Отклонить</button></div>`:b.st=='acc'?`<p class="wa">Бюджет заморожен в эскроу. Ждём работу.</p><button class="pri" data-a="done|${b.id}">Подтвердить выполнение</button>`:b.st=='done'?'<p class="ok">Выплачено креатору</p>':'<p class="mu">Отклонено</p>')+'</div>'}).join('')+'</div>'});
+ return h}
+function vAdm(){let h='<p class="mu sm">Правила антифрода: риск от 70 блокирует аккаунт автоматически, 30–69 уходит на ручную проверку, ниже 30 всё в порядке.</p>';
+ Object.entries(C).forEach(([i,c])=>{const r=risk(c),bl=S.blocked[i];
+ h+=`<div class="card"><div class="top"><b>${c.n}</b>${badge(r.s)}</div><p class="mu sm">${c.p}, рост ${c.g}% в день, лайки к просмотрам ${(c.l/c.v*100).toFixed(1)}%, боты ${c.b}%</p>${r.r.length?`<p class="sm">${r.r.map(esc).join('<br>')}</p>`:'<p class="ok sm">Аномалий нет</p>'}`+
+ (bl?`<p class="er">Заблокирован${bl.ap?', подана апелляция':''}</p><button data-a="unb|${i}">Разблокировать</button>`:`<button data-a="blk|${i}">Заблокировать</button>`)+'</div>'});
+ return h+'<div class="foot"><button data-a="reset">Сбросить демо-данные</button></div>'}
+function render(){
+ $('nav').innerHTML=[['feed','Афиши'],['adv','Рекламодатель'],['adm','Админ']].map(t=>`<button class="${tab==t[0]?'on':''}" data-a="tab|${t[0]}">${t[1]}</button>`).join('');
+ $('app').innerHTML=tab=='feed'?vFeed():tab=='adv'?vAdv():vAdm();
+ const a=S.ads.find(x=>x.id==modal);
+ $('modal').innerHTML=a?`<div class="sheet"><h3>${esc(a.t)}</h3><p class="mu sm">Бюджет рекламодателя: ${rub(a.bud)}</p><label for="pr">Ваша цена, ₽</label><input id="pr" type="number" inputmode="numeric"><label for="cm">Комментарий</label><textarea id="cm" placeholder="Как вы это сделаете и за какой срок"></textarea><div class="row"><button data-a="close">Отмена</button><button class="pri" data-a="send">Отправить отклик</button></div></div>`:'';
+ save()}
+const A={
+ tab:t=>{tab=t},f:p=>{filt=p},open:id=>{modal=+id},close:()=>{modal=null},
+ send:()=>{const price=+$('pr').value;if(!(price>0)){$('pr').focus();return}
+  check(S.me);if(S.blocked[S.me]){modal=null;return}
+  S.bids.push({id:S.n++,ad:modal,cr:S.me,price,cm:$('cm').value.trim(),st:'new'});modal=null},
+ appeal:()=>{S.blocked[S.me].ap=true},
+ newad:()=>{const t=$('t').value.trim();if(!t){$('t').focus();return}
+  S.ads.unshift({id:S.n++,mine:1,st:'Открыта',t,d:$('d').value.trim(),p:$('p').value,fm:$('fm').value,mf:+$('mf').value||0,mv:+$('mv').value||0,bud:+$('bud').value||0});draft={}},
+ gen:async()=>{const idea=$('idea').value.trim();draft={idea};
+  if(!idea){gmsg='Сначала опишите идею';return}
+  busy=true;gmsg='';render();
+  try{const r=await fetch('/api/brief',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({idea})});
+   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'сервер недоступен');
+   draft={idea,t:j.title,d:j.description,p:j.platform,fm:j.format,mf:j.minFollowers,mv:j.minReach,bud:j.budget}}
+  catch(e){gmsg='Не получилось: '+e.message}
+  busy=false;render()},
+ acc:id=>{const b=S.bids.find(x=>x.id==id);b.st='acc';S.ads.find(a=>a.id==b.ad).st='В работе'},
+ rej:id=>{S.bids.find(x=>x.id==id).st='rej'},
+ done:id=>{const b=S.bids.find(x=>x.id==id);b.st='done';S.ads.find(a=>a.id==b.ad).st='Завершена'},
+ unb:i=>{delete S.blocked[i]},blk:i=>{S.blocked[i]={r:['Заблокирован администратором'],ap:false}},
+ reset:()=>{S=seed()}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const[a,x]=b.dataset.a.split('|');A[a](x);render()});
+document.addEventListener('change',e=>{if(e.target.id=='me'){S.me=e.target.value;check(S.me);render()}});
+check(S.me);render();
+</script></body></html>
